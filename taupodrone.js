@@ -5,21 +5,24 @@ require([
   "esri/widgets/Locate",
   "esri/widgets/Search",
   "esri/tasks/Locator",
+  "esri/tasks/support/Query",
+  "esri/geometry/Point",
   "dojo/domReady!"
-  ], function(Map, MapView, FeatureLayer, Locate, Search, Locator){
+  ], function(Map, MapView, FeatureLayer, Locate, Search, Locator, Query, Point){
 
   var map = new Map({
     basemap: "streets-navigation-vector"
   });
 
   var aerodromes = new FeatureLayer({
-    url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Aerodromes/FeatureServer?token=2JM9b-YtFgfD9QdH5PBRRcXW0FCKLS7Lw6cu33MGApksIA2HfwahfE7gO5IlJCa0n-5lK58T4b3HzbvDAgCB5vSluTGaUy97r67cgbWSm0AWtTJraxtE1q7s6uO_Zw12lP1FpgnJCOEWRb59PjE3o6WAbLfUNMer43HnXEsI_hF4cYEKIMRCxp3WcLNHl5INaGK5MIOldKAlwirEsQjOhZvuguiHhPTnEva6ik5bVcjJVQ-PnKpHp4zPM6a-lZo_"
+    url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Aerodromes/FeatureServer"
   });
+
    
   map.add(aerodromes);
 
   var aerodromes_4k = new FeatureLayer({
-    url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Aerodromes_4km_Buffers/FeatureServer?token=iiA3D_etwckY3v2wxilFiWviil6wSAWBNg9Rf37K4qZYbY3Faao5NCyYw9iPxMHEX1_EMSHhIufznEalnaG-ki1HmVlOrLpENoegodOgMmaoMZy9-vx6yeW8VjYZPEQCOK0vlRA6JqDNtVmXigSOhlGuT2V7sEaHLxWJtW31uU9E6K-Dw2ECUj-Bwevxwuetwsitq_u35OY6gSdxbNGucDbM8yZrJpiOLb7ie9rmgHlNzz0fWSbmMZzUqKS3fKYe"
+    url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Aerodromes_4km_Buffers/FeatureServer"
   });
 
   map.add(aerodromes_4k);
@@ -40,9 +43,8 @@ require([
     position: "top-left"
   });
   
- 
  // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
- 
+ // Set local to NZ
   var search = new Search({
     sources: [{
       locator: new Locator({ url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"}),
@@ -52,14 +54,31 @@ require([
     includeDefaultSources: false,
     locationEnabled: false    
   });
-  
-  
-//    // Search widget
-//  var search = new Search({
-//    view: view,
-//    locationEnabled: false
-//  });
 
-  view.ui.add(searchWidget, "top-right"); // Add to the view
+  view.ui.add(search, "top-right"); // Add to the view
   
+  // query buffer on click/tap
+  view.on("click", function(event){
+    // https://developers.arcgis.com/javascript/latest/api-reference/esri-tasks-support-Query.html
+    // https://developers.arcgis.com/javascript/latest/sample-code/featurelayer-query/index.html
+
+    var query = aerodromes_4k.createQuery();
+    query.geometry = view.toMap(event);  // the point location of the pointer
+    console.log(query.geometry);
+    query.spatialRelationship = "intersects";  // this is the default
+    query.returnGeometry = false;
+    query.outFields = [ "Aerodrome" ];
+    
+    aerodromes_4k.queryFeatures(query).then(function(result){
+      var features = result.features;
+      if (features.length) {
+        for (var i = 0; i < features.length; i++) 
+          console.log(features[i].attributes['Aerodrome']);
+        }        
+        else {
+          console.log('Not within 4km of a Taupo Aerodrome');
+        }
+    })    
+  })
+    
 });
