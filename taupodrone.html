@@ -11,14 +11,32 @@
         height: 100%;
         width: 100%;
       }
+      
+      #update {
+        padding: 6px;
+      }
+
+      #form{
+        background: #fff;
+      }
+
+      /* replaces esri-widget--panel */  
+      .scroller {
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
     </style>  
     
-    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">    
-    <script src="https://js.arcgis.com/4.9/"></script>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
+    <script src="https://js.arcgis.com/4.10/"></script>    
     
     <script src="taupodrone.js"></script>
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="update" class="esri-widget esri-hidden">
+      <div id="formDiv" class="scroller esri-component"></div>
+      <input type="button" class="esri-button" value="Update assessment" id="btnUpdate">
+    </div>
   </body>
 </html>

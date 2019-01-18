@@ -2,13 +2,13 @@ require([
   "esri/Map",
   "esri/views/MapView",
   "esri/layers/FeatureLayer",
+  "esri/widgets/FeatureForm",
   "esri/widgets/Locate",
   "esri/widgets/Search",
   "esri/tasks/Locator",
   "esri/tasks/support/Query",
-  "esri/geometry/Point",
   "dojo/domReady!"
-  ], function(Map, MapView, FeatureLayer, Locate, Search, Locator, Query, Point){
+  ], function(Map, MapView, FeatureLayer, FeatureForm, Locate, Search, Locator, Query){
 
   var map = new Map({
     basemap: "streets-navigation-vector"
@@ -17,7 +17,6 @@ require([
   var aerodromes = new FeatureLayer({
     url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Aerodromes/FeatureServer"
   });
-
    
   map.add(aerodromes);
 
@@ -38,13 +37,35 @@ require([
     view: view
   });
   
-  // Add the locate widget to the top left corner of the view
-  view.ui.add(locateBtn, {
-    position: "top-left"
+  var droneRequests = new FeatureLayer({
+    url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Drone_Requests/FeatureServer"
   });
-  
- // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
- // Set local to NZ
+    
+  // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-FeatureForm.html#feature
+  var droneRequestForm = new FeatureForm({
+    container: "formDiv", // HTML div
+    layer: droneRequests,
+    fieldConfig: [ // Autocasts as FieldConfig
+      { name: "First_Name",
+        label: "First Name"
+      },
+      { name: "Last_Name",
+        label: "Last Name"
+      },
+      { name: "Email",
+        label: "Email"
+      },
+      { name: "Phone",
+        label: "Phone"
+      },
+      {
+        name: "Aerodromes",
+        label: "Aerodromes"
+      }]
+  });
+ 
+  // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
+  // Set local to NZ
   var search = new Search({
     sources: [{
       locator: new Locator({ url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"}),
@@ -54,31 +75,44 @@ require([
     includeDefaultSources: false,
     locationEnabled: false    
   });
-
-  view.ui.add(search, "top-right"); // Add to the view
-  
+ 
   // query buffer on click/tap
   view.on("click", function(event){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-tasks-support-Query.html
     // https://developers.arcgis.com/javascript/latest/sample-code/featurelayer-query/index.html
-
+    
+    var aerodromes
+    
     var query = aerodromes_4k.createQuery();
     query.geometry = view.toMap(event);  // the point location of the pointer
-    console.log(query.geometry);
     query.spatialRelationship = "intersects";  // this is the default
     query.returnGeometry = false;
     query.outFields = [ "Aerodrome" ];
     
-    aerodromes_4k.queryFeatures(query).then(function(result){
-      var features = result.features;
-      if (features.length) {
-        for (var i = 0; i < features.length; i++) 
-          console.log(features[i].attributes['Aerodrome']);
+    aerodromes_4k.queryFeatures(query).then(function(result){    
+      var aerodromeFeatures = result.features;
+      if (aerodromeFeatures.length) {
+        // Test display
+        droneRequests.queryFeatures(droneRequests.createQuery()).then(function(result){
+          console.log(result);
+          editFeature = result.features[0];
+          droneRequestForm.feature = editFeature;
+          document.getElementById("update").classList.remove("esri-hidden");
+        });
+        
+        for (var i = 0; i < aerodromeFeatures.length; i++) 
+          console.log(aerodromeFeatures[i].attributes['Aerodrome']);
         }        
         else {
           console.log('Not within 4km of a Taupo Aerodrome');
         }
     })    
-  })
+  });
+    
+  view.ui.add(search, "top-right");
+  view.ui.add("update", "bottom-right");  
+  view.ui.add(locateBtn, {
+    position: "top-left"
+  });
     
 });
