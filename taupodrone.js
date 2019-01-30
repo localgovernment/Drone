@@ -7,6 +7,9 @@ require([
   "esri/widgets/Locate",
   "esri/widgets/Search"
 ], function(Map, MapView, FeatureLayer, Locator, Locate, Search){
+  // Defaults
+  var defaultScale = 500;  // When zooming into a location
+
   // Create the Map
   var map = new Map({
     basemap: "streets-navigation-vector"
@@ -28,7 +31,7 @@ require([
   var councilProperty = new FeatureLayer({
     url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Council_Land/FeatureServer"
   });
- 
+   
   // Create the MapView
   var view = new MapView({
     container: "viewDiv",  // Reference to the scene div
@@ -36,7 +39,10 @@ require([
     zoom: 10,  // Sets zoom level based on level of detail (LOD)
     center: [175.9, -38.8]  // Sets centre point of view using longitude,latitude
   });   
-  
+  view.when(function() {
+    locateBtn.locate(); // force locate to 'fire' after view has loaded
+  }, function(error) {});
+
   // Set up a locator task using the world geocoding service
   var locatorTask = new Locator({
     url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
@@ -45,9 +51,14 @@ require([
   
   // Handy locate me button
   var locateBtn = new Locate({
-    view: view
+    view: view,
+    scale: defaultScale
   });
-  
+  locateBtn.on("locate", function(locateEvent){
+    // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
+    console.log(locateEvent.position.coords);
+  })
+    
   // Handy address search box
   // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
   // Set local to NZ
@@ -70,8 +81,8 @@ require([
   view.on("click", function(event) {
 
     // Get the coordinates of the click on the view
-    var lat = Math.round(event.mapPoint.latitude * 1000) / 1000;
-    var lon = Math.round(event.mapPoint.longitude * 1000) / 1000;
+    var lat = Math.round(event.mapPoint.latitude * 100000) / 100000;
+    var lon = Math.round(event.mapPoint.longitude * 100000) / 100000;
     
     // Set up the query for determining the aerodromes
     var aerodromeQuery = prepareIntersectsQuery(aerodromes4K, event, ["Aerodrome"]);
@@ -88,7 +99,7 @@ require([
     
     view.popup.collapsed = false;
     view.popup.content = '<p><b>Address: </b>';
-
+    
     // Execute a reverse geocode using the clicked location
     locatorTask.locationToAddress(event.mapPoint).then(function(
       response) {
@@ -141,7 +152,7 @@ require([
     query.outFields = outFields;
     return query;    
   }
-  
+    
   // Place widgets on the map
   view.ui.add(locateBtn, "top-left");
   view.ui.add(search, "top-right");
