@@ -5,8 +5,9 @@ require([
   "esri/layers/FeatureLayer",
   "esri/tasks/Locator",
   "esri/widgets/Locate",
-  "esri/widgets/Search"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search){
+  "esri/widgets/Search",
+  "esri/geometry/support/webMercatorUtils"
+], function(Map, MapView, FeatureLayer, Locator, Locate, Search, webMercatorUtils){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
 
@@ -56,9 +57,14 @@ require([
   });
   locateBtn.on("locate", function(locateEvent){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
-    console.log(locateEvent.position.coords);
-  })
     
+    // console.log(view.center); - this could be useful instead?
+    // var coords = locateEvent.position.coords;  
+    // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // https://stackoverflow.com/a/38933993/353455 
+    
+    dronePopup(view.center);
+  })
+      
   // Handy address search box
   // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
   // Set local to NZ
@@ -69,7 +75,6 @@ require([
     locationEnabled: false,
     popupEnabled: false
   });
-
  
    /*******************************************************************
    * This click event sets generic content on the popup not tied to
@@ -78,30 +83,34 @@ require([
    * address is printed to the popup content.
    *******************************************************************/
   view.popup.autoOpenEnabled = false;
-  view.on("click", function(event) {
-
+  view.on("click", function(event) {    
+    dronePopup(event.mapPoint);
+  });
+  
+  function dronePopup(mapPoint) {
+      
     // Get the coordinates of the click on the view
-    var lat = Math.round(event.mapPoint.latitude * 100000) / 100000;
-    var lon = Math.round(event.mapPoint.longitude * 100000) / 100000;
+    var lat = Math.round(mapPoint.latitude * 100000) / 100000;
+    var lon = Math.round(mapPoint.longitude * 100000) / 100000;
     
     // Set up the query for determining the aerodromes
-    var aerodromeQuery = prepareIntersectsQuery(aerodromes4K, event, ["Aerodrome"]);
+    var aerodromeQuery = prepareIntersectsQuery(aerodromes4K, mapPoint, ["Aerodrome"]);
        
     // Set up the query for determining council property
-    var councilPropertyQuery = prepareIntersectsQuery(councilProperty, event, ["Description"]);
+    var councilPropertyQuery = prepareIntersectsQuery(councilProperty, mapPoint, ["Description"]);
 
     // Open the popup - add content later  
     view.popup.open({
       // Set the popup's title to the coordinates of the location
       title: "Lat Long: " + lat + ", " + lon,
-      location: event.mapPoint, // Set the location of the popup to the clicked location
+      location: mapPoint, // Set the location of the popup to the clicked location
     });
     
     view.popup.collapsed = false;
     view.popup.content = '<p><b>Address: </b>';
     
     // Execute a reverse geocode using the clicked location
-    locatorTask.locationToAddress(event.mapPoint).then(function(
+    locatorTask.locationToAddress(mapPoint).then(function(
       response) {
       // If an address is successfully found, show it in the popup's content
       view.popup.content += response.address + '</p>';
@@ -141,18 +150,18 @@ require([
       }
       view.popup.content += '</p>';
     });
-  });
+  }
   
-  // prepare an intersect query
-  function prepareIntersectsQuery(featureLayer, event, outFields) {
+    // prepare an intersect query
+  function prepareIntersectsQuery(featureLayer, mapPoint, outFields) {
     var query = aerodromes4K.createQuery();
-    query.geometry = view.toMap(event);  // the point location of the pointer
+    query.geometry = mapPoint;
     query.spatialRelationship = "intersects";  // this is the default
     query.returnGeometry = false;
     query.outFields = outFields;
     return query;    
   }
-    
+      
   // Place widgets on the map
   view.ui.add(locateBtn, "top-left");
   view.ui.add(search, "top-right");
