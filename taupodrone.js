@@ -70,72 +70,6 @@ require([
     popupEnabled: false
   });
 
-  function dronePopup(event) {
-      
-    // Get the coordinates of the click on the view
-    var lat = Math.round(event.mapPoint.latitude * 100000) / 100000;
-    var lon = Math.round(event.mapPoint.longitude * 100000) / 100000;
-    
-    // Set up the query for determining the aerodromes
-    var aerodromeQuery = prepareIntersectsQuery(aerodromes4K, event, ["Aerodrome"]);
-       
-    // Set up the query for determining council property
-    var councilPropertyQuery = prepareIntersectsQuery(councilProperty, event, ["Description"]);
-
-    // Open the popup - add content later  
-    view.popup.open({
-      // Set the popup's title to the coordinates of the location
-      title: "Lat Long: " + lat + ", " + lon,
-      location: event.mapPoint, // Set the location of the popup to the clicked location
-    });
-    
-    view.popup.collapsed = false;
-    view.popup.content = '<p><b>Address: </b>';
-    
-    // Execute a reverse geocode using the clicked location
-    locatorTask.locationToAddress(event.mapPoint).then(function(
-      response) {
-      // If an address is successfully found, show it in the popup's content
-      view.popup.content += response.address + '</p>';
-    }).catch(function(error) {
-      // If the promise fails and no result is found, show a generic message for address
-      view.popup.content += 'No address was found at this location</p>';
-    }).then(function() {
-      // add all aerodromes within 4km of map point
-      view.popup.content += '<p><b>Aerodromes:</b>';
-      return aerodromes4K.queryFeatures(aerodromeQuery).then(function(result){    
-        var aerodromeFeatures = result.features;
-        if (aerodromeFeatures.length) {       
-          view.popup.content += '<ul>';
-          for (var i = 0; i < aerodromeFeatures.length; i++) 
-            view.popup.content += '<li>' + aerodromeFeatures[i].attributes['Aerodrome'] + '</li>';
-          view.popup.content += '</ul></p>';
-        }         
-        else {
-          view.popup.content += ' Not within 4km of a Taupo Aerodrome</p>';
-        }
-      });
-    }).then(function(){
-      // is council property impacted?
-      return councilProperty.queryFeatures(councilPropertyQuery).then(function(result){    
-        var isCouncil = false;
-        var councilPropertyFeatures = result.features;
-        if (councilPropertyFeatures.length) {                 
-          view.popup.content += '<p><b>Council Property:</b> ' + councilPropertyFeatures[0].attributes['Description'] + '</p>'
-          isCouncil = true;
-        }
-        return isCouncil;
-      });
-    }).then(function(isCouncil){
-      view.popup.content += '<p>Please use the above information to assist in the filling out of the Taupo Airport Authority <a href="https://taupoairport.co.nz/rpas-form/"  target="_blank">RPAS Agreement Form</a>';
-      if (isCouncil) {
-        view.popup.content += ' and the Taupo District Council <a href="https://www.taupodc.govt.nz/our-services/a-to-z/Documents/RPAS%20Permit%20Application%20Form.pdf"  target="_blank">Drone Permit</a>';
-      }
-      view.popup.content += '</p>';
-    });
-  
-  }
- 
  
    /*******************************************************************
    * This click event sets generic content on the popup not tied to
@@ -145,9 +79,7 @@ require([
    *******************************************************************/
   view.popup.autoOpenEnabled = false;
   view.on("click", function(event) {
-    
-    dronePopup(event);
-    /*
+
     // Get the coordinates of the click on the view
     var lat = Math.round(event.mapPoint.latitude * 100000) / 100000;
     var lon = Math.round(event.mapPoint.longitude * 100000) / 100000;
@@ -209,7 +141,6 @@ require([
       }
       view.popup.content += '</p>';
     });
-    */
   });
   
   // prepare an intersect query
