@@ -58,9 +58,13 @@ require([
   locateBtn.on("locate", function(locateEvent){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
     
-    // console.log(view.center); - this could be useful instead?
-    // var coords = locateEvent.position.coords;  
+    console.log('View Coordinates');
+    console.log(view.center); // - this could be useful instead?
+    var coords = locateEvent.position.coords;  
     // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // https://stackoverflow.com/a/38933993/353455 
+    console.log('Map Coordinates');
+    var mapPoint = new Point({latitude:coords.latitude,longitude:coords.longitude});
+    // console.log(mapPoint);
     
     dronePopup(view.center);
   })
