@@ -6,11 +6,11 @@ require([
   "esri/tasks/Locator",
   "esri/widgets/Locate",
   "esri/widgets/Search",
-  "esri/geometry/support/webMercatorUtils"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search, webMercatorUtils){
+  "esri/geometry/Point"
+], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
-
+  
   // Create the Map
   var map = new Map({
     basemap: "streets-navigation-vector"
@@ -58,15 +58,14 @@ require([
   locateBtn.on("locate", function(locateEvent){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
     
-    console.log('View Coordinates');
-    console.log(view.center); // - this could be useful instead?
-    var coords = locateEvent.position.coords;  
-    // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // https://stackoverflow.com/a/38933993/353455 
-    console.log('Map Coordinates');
-    var mapPoint = new Point({latitude:coords.latitude,longitude:coords.longitude});
-    // console.log(mapPoint);
+    // console.log('View Coordinates');
+    // console.log(view.center); // - this could be useful instead?
     
-    dronePopup(view.center);
+    var coords = locateEvent.position.coords;  
+    var mapPoint = new Point({latitude:coords.latitude,longitude:coords.longitude}); // seems to work - default spatial reference is WGS84
+    // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // web mercator https://stackoverflow.com/a/38933993/353455 
+       
+    dronePopup(mapPoint);
   })
       
   // Handy address search box
@@ -79,7 +78,15 @@ require([
     locationEnabled: false,
     popupEnabled: false
   });
- 
+  search.goToOverride = function(view, goToParams) {
+    // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-MapView.html#goTo
+    // note esri doco isn't clear - lots of trial and error to get this to work
+    var target = goToParams.target.target
+    view.goTo({target: target, scale: defaultScale}, goToParams.options).then(function(){
+      dronePopup(target.center);
+    });
+  }
+  
    /*******************************************************************
    * This click event sets generic content on the popup not tied to
    * a layer, graphic, or popupTemplate. The location of the point is
