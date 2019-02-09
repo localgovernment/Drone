@@ -80,17 +80,16 @@ require([
         distance: 50000}
       }],
     view: view,
-    includeDefaultSources: false,
     locationEnabled: false,
-    popupEnabled: false,
-    maxSuggestions: 1,
-    autoSelect: false // see search-complete event handler below https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Search.html#autoSelect
+    popupEnabled: false
+    // autoSelect: true // see search-complete event handler below https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Search.html#autoSelect
   });
   
   // Default operation of search doesn't handle a return on keyboard (or mobile) very 
   // well.  This 'override' relies on autoSelect being false in the search widget.  It
   // also relies on only 1 suggestion being made available (although will work with more).
   // the key from the suggestions results is passed 
+  /*
   search.on('search-complete', function(event) {
     console.log('Search Complete: ', event);
     search.suggest(search.searchterm).then(function(suggestions){
@@ -108,31 +107,19 @@ require([
         search.clear();
       }
     }); 
-  });
-  
-  /*
-  search.on('suggest-complete', function(event) {
-    console.log('Suggestions: ', event);
-    if (event.numResults) {
-      search.searchTerm = event.results[0].results[0].text;
-    }
-  });
+  }); */
   
   search.goToOverride = function(view, goToParams) {
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-MapView.html#goTo
     // note esri doco isn't clear - lots of trial and error to get this to work
-    var target = goToParams.target.target
+    console.log(search.searchTerm);
+    var target = goToParams.target.target;
     view.goTo({target: target, scale: defaultScale}, goToParams.options).then(function(){
       dronePopup(target.center);
     });
-  }*/
+  }
   
-   /*******************************************************************
-   * This click event sets generic content on the popup not tied to
-   * a layer, graphic, or popupTemplate. The location of the point is
-   * used as input to a reverse geocode method and the resulting
-   * address is printed to the popup content.
-   *******************************************************************/
+  // override view's popup
   view.popup.autoOpenEnabled = false;
   view.on("click", function(event) {    
     dronePopup(event.mapPoint);
