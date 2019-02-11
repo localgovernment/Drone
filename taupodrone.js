@@ -6,10 +6,23 @@ require([
   "esri/tasks/Locator",
   "esri/widgets/Locate",
   "esri/widgets/Search",
-  "esri/geometry/Point"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point){
+  "esri/geometry/Point",
+  "esri/Graphic"
+], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, Graphic){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
+  var defaultGraphic = new Graphic({
+        symbol: { 
+          type: "simple-marker",
+          style: "x",
+          color: "red",
+          size: "14px",
+          outline: {  // autocasts as new SimpleLineSymbol()
+            color:"red",
+            width: "5px"  // points
+          }
+        }
+      });
   
   // Create the Map
   var map = new Map({
@@ -53,7 +66,8 @@ require([
   // Handy locate me button
   var locateBtn = new Locate({
     view: view,
-    scale: defaultScale
+    scale: defaultScale, 
+    graphic: defaultGraphic
   });
   locateBtn.on("locate", function(locateEvent){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
@@ -85,10 +99,7 @@ require([
     // autoSelect: true // see search-complete event handler below https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Search.html#autoSelect
   });
   
-  // Default operation of search doesn't handle a return on keyboard (or mobile) very 
-  // well.  This 'override' relies on autoSelect being false in the search widget.  It
-  // also relies on only 1 suggestion being made available (although will work with more).
-  // the key from the suggestions results is passed 
+  // No longer using Search On - but code below may be used in future
   /*
   search.on('search-complete', function(event) {
     console.log('Search Complete: ', event);
