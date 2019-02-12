@@ -55,6 +55,7 @@ require([
   });   
   view.when(function() {
     locateBtn.locate(); // force locate to 'fire' after view has loaded
+    search.focus();
   }, function(error) {});
 
   // Set up a locator task using the world geocoding service
@@ -87,15 +88,20 @@ require([
   // Set local to NZ
   var search = new Search({
     sources: [{
-      locator: locatorTask, 
-      countryCode: "NZ",
-      localSearchOptions: {
-        minScale: 300000,
-        distance: 50000}
-      }],
+          locator: locatorTask,
+          singleLineFieldName: "SingleLine", // if this is excluded and user just types an address, then address is random!
+          countryCode: 'NZ',
+          localSearchOptions: {
+            minScale: 300000,
+            distance: 50000
+          }
+        }
+      ],    
     view: view,
+    maxSuggestions: 3,
     locationEnabled: false,
-    popupEnabled: false
+    popupEnabled: false,
+    includeDefaultSources: false // otherwise ArcGIS source appears in suggestions
     // autoSelect: true // see search-complete event handler below https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Search.html#autoSelect
   });
   
@@ -123,11 +129,12 @@ require([
   search.goToOverride = function(view, goToParams) {
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-MapView.html#goTo
     // note esri doco isn't clear - lots of trial and error to get this to work
-    console.log(search.searchTerm);
     var target = goToParams.target.target;
     view.goTo({target: target, scale: defaultScale}, goToParams.options).then(function(){
       dronePopup(target.center);
     });
+    // search.suggest(); // clear suggest error if there is one
+    search.clear();
   }
   
   // override view's popup
