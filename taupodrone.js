@@ -67,8 +67,8 @@ require([
   // Handy locate me button
   var locateBtn = new Locate({
     view: view,
-    scale: defaultScale, 
-    graphic: defaultGraphic
+    scale: defaultScale,
+    graphic: null
   });
   locateBtn.on("locate", function(locateEvent){
     // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
