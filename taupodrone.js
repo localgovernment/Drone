@@ -151,6 +151,8 @@ require([
     });
     // search.suggest(); // clear suggest error if there is one
     search.clear();
+    if (isMobile())
+      search.blur(); // gets rid of keyboard after search (at least on iOS)
   }
   
   // override view's popup
