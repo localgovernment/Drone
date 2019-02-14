@@ -7,10 +7,12 @@ require([
   "esri/widgets/Locate",
   "esri/widgets/Search",
   "esri/geometry/Point",
+  "esri/layers/GraphicsLayer",
   "esri/Graphic"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, Graphic){
+], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
+  // X marks the spot (see GraphicsLayer)
   var defaultGraphic = new Graphic({
         symbol: { 
           type: "simple-marker",
@@ -45,6 +47,17 @@ require([
   var councilProperty = new FeatureLayer({
     url: "https://services7.arcgis.com/S7DHOirgbYgdtrbR/arcgis/rest/services/Taupo_Council_Land/FeatureServer"
   });
+  
+  // Graphics Layer for X marks the spot
+  var graphicsLayer = new GraphicsLayer({
+  });
+  
+  map.add(graphicsLayer);
+  
+  // Check if device is a mobile (will a popup auto dock)
+  var isMobile = function() {
+      return (view.width <= view.popup.dockOptions.breakpoint.width)
+    }
    
   // Create the MapView
   var view = new MapView({
@@ -54,7 +67,8 @@ require([
     center: [175.9, -38.8]  // Sets centre point of view using longitude,latitude
   });   
   view.when(function() {
-    locateBtn.locate(); // force locate to 'fire' after view has loaded
+    if (isMobile())
+      locateBtn.locate(); // force locate to 'fire' after view has loaded
     search.focus();
   }, function(error) {});
 
@@ -64,24 +78,26 @@ require([
     countryCode:"NZ"
   });
   
-  // Handy locate me button
-  var locateBtn = new Locate({
-    view: view,
-    scale: defaultScale,
-    graphic: null
-  });
-  locateBtn.on("locate", function(locateEvent){
-    // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
-    
-    // console.log('View Coordinates');
-    // console.log(view.center); // - this could be useful instead?
-    
-    var coords = locateEvent.position.coords;  
-    var mapPoint = new Point({latitude:coords.latitude,longitude:coords.longitude}); // seems to work - default spatial reference is WGS84
-    // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // web mercator https://stackoverflow.com/a/38933993/353455 
-       
-    dronePopup(mapPoint);
-  })
+  if (isMobile()) {
+    // Handy locate me button
+    var locateBtn = new Locate({
+      view: view,
+      scale: defaultScale,
+      graphic: null
+    });
+    locateBtn.on("locate", function(locateEvent){
+      // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Locate.html#scale
+      
+      // console.log('View Coordinates');
+      // console.log(view.center); // - this could be useful instead?
+      
+      var coords = locateEvent.position.coords;  
+      var mapPoint = new Point({latitude:coords.latitude,longitude:coords.longitude}); // seems to work - default spatial reference is WGS84
+      // var mapPoint = webMercatorUtils.geographicToWebMercator(new Point({latitude:coords.latitude,longitude:coords.longitude}));  // web mercator https://stackoverflow.com/a/38933993/353455 
+         
+      dronePopup(mapPoint);
+    })
+  }
       
   // Handy address search box
   // https://gis.stackexchange.com/questions/297918/limiting-the-search-widget-results-to-a-country-in-arcgis-js-api-4-9?rq=1
@@ -144,6 +160,11 @@ require([
   });
   
   function dronePopup(mapPoint) {
+    
+    // draw X on the map
+    graphicsLayer.removeAll();
+    defaultGraphic.geometry = mapPoint;
+    graphicsLayer.add(defaultGraphic);
       
     // Get the coordinates of the click on the view
     var lat = Math.round(mapPoint.latitude * 100000) / 100000;
@@ -163,6 +184,8 @@ require([
     });
     
     view.popup.collapsed = false;
+    view.popup.dockOptions.buttonEnabled = false;
+    view.popup.collapseEnabled = false;
     view.popup.content = '<p><b>Address: </b>';
     
     // Execute a reverse geocode using the clicked location
@@ -206,6 +229,7 @@ require([
       }
       view.popup.content += '</p>';
     });
+    search.focus();
   }
   
     // prepare an intersect query
@@ -219,6 +243,7 @@ require([
   }
       
   // Place widgets on the map
-  view.ui.add(locateBtn, "top-left");
+  if (isMobile())
+    view.ui.add(locateBtn, "top-left");
   view.ui.add(search, "top-right");
 });
