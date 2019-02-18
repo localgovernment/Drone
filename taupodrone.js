@@ -8,8 +8,9 @@ require([
   "esri/widgets/Search",
   "esri/geometry/Point",
   "esri/layers/GraphicsLayer",
-  "esri/Graphic"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic){
+  "esri/Graphic",
+  "esri/widgets/Expand"
+], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic, Expand){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
   // X marks the spot (see GraphicsLayer)
@@ -243,9 +244,37 @@ require([
     query.outFields = outFields;
     return query;    
   }
+  
+  // Help on using the app
+  // https://developers.arcgis.com/javascript/latest/sample-code/sandbox/index.html?sample=featurelayerview-query-distance
+  // https://developers.arcgis.com/javascript/latest/api-reference/esri-widgets-Expand.html#content
+  /* var droneInstructions = document.createElement("div");
+  droneInstructions.style.padding = "10px";
+  droneInstructions.style.backgroundColor = "white";
+  
+  droneInstructions.style.width = "300px";
+  droneInstructions.innerHTML = [
+    "<b>Drag</b> the pointer over the data to view stats",
+    "within one mile of the pointer location."
+  ].join(" ");*/
+  
+  instructionsDiv = dojo.byId("instructionsDiv");
+  if (view.width < 375)
+      instructionsDiv.style.width = (view.width - 70) + "px"
+  else
+      instructionsDiv.style.width = "305px";
+
+  var instructionsExpand = new Expand({
+    expandIconClass: "esri-icon-question",
+    expandTooltip: "How to use the drone app",
+    mode: "floating",
+    view: view,
+    content: instructionsDiv
+  });
       
   // Place widgets on the map
   if (isMobile())
     view.ui.add(locateBtn, "top-left");
-  view.ui.add(search, "top-right");
+  view.ui.add(instructionsExpand, "top-left");        
+  view.ui.add(search, "top-right");  
 });
