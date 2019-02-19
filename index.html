@@ -15,11 +15,20 @@
       }  
       #instructionsDiv {
         padding: 10px;
-        background: white;
+        background-color: white;
+        /* background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url("dart.png");*/
+        background-image: url("dart.png");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-position: right bottom;
+        background-size: 100px;
         width: 100%;  
       }
       .esri-popup__main-container.esri-widget {
         max-height: 600px !important;
+      }    
+      .esri-popup__content.esri-widget {
+          font-size: 14px !important;
       }
     </style>      
     <script src="https://js.arcgis.com/4.10/"></script>        
@@ -28,7 +37,7 @@
   <body>
     <div id="viewDiv"></div>
     <div id="instructionsDiv">
-      <b>Taupo Drone Information</b>
+      <b>Taupo Drone Web Map Application</b>
       <p>This map application has been designed to provide Drone pilots with aerodrome and council property information at any given location within the Taupo District.</p>
       <p>The information this app provides can be used to assist in the filling out of the Taupo Airport Authority <a href="https://taupoairport.co.nz/rpas-form/"  target="_blank">RPAS Agreement Form</a>, and the Taupo District Council <a href="https://www.taupodc.govt.nz/our-services/a-to-z/Documents/RPAS%20Permit%20Application%20Form.pdf"  target="_blank">Drone Permit</a>.<p>
       <p>Within the app simply click, tap, locate (mobile only) or search in order to be provided with the relevant information for your location of interest.</p>

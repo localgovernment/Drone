@@ -233,6 +233,7 @@ require([
       view.popup.content += '</p>';
     });
     search.focus();
+    instructionsExpand.collapse();
   }
   
     // prepare an intersect query
