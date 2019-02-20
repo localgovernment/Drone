@@ -1,5 +1,6 @@
 // https://developers.arcgis.com/javascript/latest/sample-code/intro-popup/index.html
 require([
+  "esri/core/urlUtils",
   "esri/Map",
   "esri/views/MapView",
   "esri/layers/FeatureLayer",
@@ -10,7 +11,7 @@ require([
   "esri/layers/GraphicsLayer",
   "esri/Graphic",
   "esri/widgets/Expand"
-], function(Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic, Expand){
+], function(urlUtils, Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic, Expand){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
   // X marks the spot (see GraphicsLayer)
@@ -26,7 +27,7 @@ require([
           }
         }
       });
-  
+        
   // Create the Map
   var map = new Map({
     basemap: "streets-navigation-vector"
@@ -59,6 +60,15 @@ require([
   var isMobile = function() {
       return (view.width <= view.popup.dockOptions.breakpoint.width)
     }
+  
+  // Read the URL, return mappoint or null
+  // https://developers.arcgis.com/javascript/latest/api-reference/esri-core-urlUtils.html#urlToObject
+  // https://developers.arcgis.com/javascript/3/jssamples/ags_basic.html
+  var urlLocation = function() {
+    var urlObject = urlUtils.urlToObject(document.location.href);
+    console.log("url: ", console.log(urlObject));
+    if 
+  }
    
   // Create the MapView
   var view = new MapView({

@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Taupo Drone</title>
+
     <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
-    <!-- https://community.esri.com/thread/193587-is-it-possible-to-change-the-mapview-popup-width-in-the-43-api -->
     <style>
       html, body, #viewDiv {
         padding: 0;
@@ -24,13 +24,15 @@
         background-size: 100px;
         width: 100%;  
       }
+      /* https://community.esri.com/thread/193587-is-it-possible-to-change-the-mapview-popup-width-in-the-43-api */
       .esri-popup__main-container.esri-widget {
         max-height: 600px !important;
       }    
-      .esri-popup__content.esri-widget {
-          font-size: 16pt !important;
+      /* used Chrome inspect tool to find the following element */
+      .esri-popup__content {
+        font-size: 14px !important; 
       }
-    </style>      
+    </style> 
     <script src="https://js.arcgis.com/4.10/"></script>        
     <script src="taupodrone.js"></script>
   </head>
