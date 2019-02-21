@@ -66,8 +66,17 @@ require([
   // https://developers.arcgis.com/javascript/3/jssamples/ags_basic.html
   var urlLocation = function() {
     var urlObject = urlUtils.urlToObject(document.location.href);
-    console.log("url: ", console.log(urlObject));
-    if 
+    if (!(urlObject.query === null)) {
+      if ("lat"in urlObject.query && "long" in urlObject.query) {
+        return new Point({latitude:urlObject.query.lat,longitude:urlObject.query.long})
+      }
+      else {
+        return null
+      }
+    }
+    else {
+      return null;
+    }
   }
    
   // Create the MapView
@@ -78,8 +87,15 @@ require([
     center: [175.9, -38.8]  // Sets centre point of view using longitude,latitude
   });   
   view.when(function() {
-    if (isMobile())
-      locateBtn.locate(); // force locate to 'fire' after view has loaded
+    var mapPoint = urlLocation();
+    if (mapPoint === null) {
+      if (isMobile()) {
+        locateBtn.locate(); // force locate to 'fire' after view has loaded
+      }
+    }
+    else {
+      dronePopup(mapPoint);      
+    }
     search.focus();
   }, function(error) {});
 
