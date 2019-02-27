@@ -193,7 +193,9 @@ require([
   // override view's popup
   view.popup.autoOpenEnabled = false;
   view.on("click", function(event) {    
-    dronePopup(event.mapPoint);
+    view.goTo({target: event.mapPoint, scale: defaultScale}).then(function(){
+      dronePopup(event.mapPoint);  
+    });
   });
   
   function dronePopup(mapPoint) {
@@ -230,7 +232,14 @@ require([
     locatorTask.locationToAddress(mapPoint).then(function(
       response) {
       // If an address is successfully found, show it in the popup's content
-      view.popup.content += response.address + '</p>';
+      // view.popup.content += response.address + '</p>';
+      if (response.attributes.PlaceName.length === 0) {
+        view.popup.content += response.address;
+      }
+      else {
+        view.popup.content += response.attributes.LongLabel.substr(response.attributes.PlaceName.length + 1).trim(); // remove placename from start of long form address -plus one for the comma
+      }
+      console.log(response);
     }).catch(function(error) {
       // If the promise fails and no result is found, show a generic message for address
       view.popup.content += 'No address was found at this location</p>';
