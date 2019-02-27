@@ -16,15 +16,21 @@ require([
   var defaultScale = 500;  // When zooming into a location
   // X marks the spot (see GraphicsLayer)
   var defaultGraphic = new Graphic({
-        symbol: { 
+        /* symbol: { 
           type: "simple-marker",
           style: "x",
-          color: "red",
+          color: "teal",
           size: "14px",
           outline: {  // autocasts as new SimpleLineSymbol()
-            color:"red",
+            color:"teal",
             width: "5px"  // points
           }
+        } */        
+        symbol: {
+          type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+          url: "favicon.png",
+          width: "30px",
+          height: "30px"
         }
       });
         
@@ -65,7 +71,7 @@ require([
   // https://developers.arcgis.com/javascript/latest/api-reference/esri-core-urlUtils.html#urlToObject
   // https://developers.arcgis.com/javascript/3/jssamples/ags_basic.html
   var urlLocation = function() {
-    var urlObject = urlUtils.urlToObject(document.location.href);
+    var urlObject = urlUtils.urlToObject(document.location.href);  
     if (!(urlObject.query === null)) {
       if ("lat"in urlObject.query && "long" in urlObject.query) {
         return new Point({latitude:urlObject.query.lat,longitude:urlObject.query.long})
@@ -94,7 +100,9 @@ require([
       }
     }
     else {
-      dronePopup(mapPoint);      
+      view.goTo({target: mapPoint, scale: defaultScale}).then(function(){
+        dronePopup(mapPoint);  
+      });
     }
     search.focus();
   }, function(error) {});
@@ -206,9 +214,10 @@ require([
     var councilPropertyQuery = prepareIntersectsQuery(councilProperty, mapPoint, ["Description"]);
 
     // Open the popup - add content later  
+    var urlLink = urlUtils.urlToObject(document.location.href).path + "?lat="+mapPoint.latitude+"&long="+mapPoint.longitude;
     view.popup.open({
-      // Set the popup's title to the coordinates of the location
-      title: "Lat Long: " + lat + ", " + lon,
+      // Set the popup's title to the coordinates of the location, link svg font from https://raw.githubusercontent.com/Esri/calcite-ui-icons/master/icons/link-16.svg - added width and height attributes
+      title: "Lat Long: " + lat + ", " + lon + ' <a href="'+urlLink+'" target="_blank" class="icon-ui-link" id="latLongLink" title="Copy and paste this link into a form"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path d="M6.086 2.09l2.828 2.83c.045.044.075.097.117.143a3.497 3.497 0 0 1 .694 3.496 3.364 3.364 0 0 1-2.121 2.121l-.104-.104a1.491 1.491 0 0 1-.412-.78 2.5 2.5 0 0 0 1.12-4.17l-.523-.521L5.38 2.797a2.5 2.5 0 0 0-3.536 3.536L4.15 8.639a4.52 4.52 0 0 0-.042 1.346c-.047-.041-.099-.072-.144-.117L1.136 7.04a3.5 3.5 0 0 1 4.95-4.95zm4.752 6.166l2.319 2.32A2.5 2.5 0 0 1 9.62 14.11l-2.828-2.829a2.503 2.503 0 0 1 0-3.535 2.47 2.47 0 0 1 1.104-.63 1.45 1.45 0 0 0-.397-.784l-.104-.104a3.449 3.449 0 0 0-1.31.81 3.51 3.51 0 0 0 0 4.95l2.828 2.829a3.5 3.5 0 0 0 4.95-4.95L11.036 7.04c-.046-.045-.099-.077-.146-.119a4.5 4.5 0 0 1-.052 1.335z"/></svg></a>',
       location: mapPoint, // Set the location of the popup to the clicked location
     });
     
@@ -292,7 +301,7 @@ require([
       instructionsDiv.style.width = "305px";
 
   var instructionsExpand = new Expand({
-    expandIconClass: "esri-icon-question",
+    expandIconClass: "esri-icon-question", // https://esri.github.io/calcite-web/documentation/icons/
     expandTooltip: "How to use the drone app",
     mode: "floating",
     view: view,
