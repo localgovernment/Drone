@@ -1,6 +1,7 @@
 // https://developers.arcgis.com/javascript/latest/sample-code/intro-popup/index.html
 require([
   "esri/core/urlUtils",
+  "esri/core/watchUtils",
   "esri/Map",
   "esri/views/MapView",
   "esri/layers/FeatureLayer",
@@ -10,8 +11,9 @@ require([
   "esri/geometry/Point",
   "esri/layers/GraphicsLayer",
   "esri/Graphic",
-  "esri/widgets/Expand"
-], function(urlUtils, Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic, Expand){
+  "esri/widgets/Expand",
+  "esri/widgets/BasemapToggle"
+], function(urlUtils, watchUtils, Map, MapView, FeatureLayer, Locator, Locate, Search, Point, GraphicsLayer, Graphic, Expand, BasemapToggle){
   // Defaults
   var defaultScale = 500;  // When zooming into a location
   // X marks the spot (see GraphicsLayer)
@@ -36,7 +38,7 @@ require([
         
   // Create the Map
   var map = new Map({
-    basemap: "streets-navigation-vector"
+    basemap: "streets-navigation-vector"  
   });
 
   var aerodromes = new FeatureLayer({
@@ -91,6 +93,17 @@ require([
     map: map,  // Reference to the map object created before the scene
     zoom: 10,  // Sets zoom level based on level of detail (LOD)
     center: [175.9, -38.8]  // Sets centre point of view using longitude,latitude
+    /*
+    // extent set from viewing properties of view with basemap: "streets-navigation-vector"  
+    // set to default basemap.  I'm trying to force the view to correct extent on load
+    // and web mercator no matter what basemap is used
+    extent: {
+      xmax: 19631929.054346066,
+      xmin: 19530267.80672692,
+      ymax: -4656029.90409158,
+      ymin: -4730097.384499816,
+      spatialReference: {wkid: 102100}
+    } */
   });   
   view.when(function() {
     var mapPoint = urlLocation();
@@ -106,6 +119,25 @@ require([
     }
     search.focus();
   }, function(error) {});
+  
+  // Basemap Toggle
+  var basemapToggle = new BasemapToggle({
+    view: view,
+    nextBasemap: "hybrid"
+  });
+  
+  basemapToggle.on("toggle", function() {
+    search.focus();
+  });
+  
+    // https://developers.arcgis.com/javascript/latest/sample-code/watch-for-changes/index.html
+  watchUtils.whenFalse(view.popup, "visible", function() {
+    // Would like to detect if basemapToogle is visible but visible property not documented and it doesn't appear to change
+    // So assume that gone if mobile
+    if (isMobile()){
+      view.ui.add(basemapToggle, "bottom-right");
+    }
+  });
 
   // Set up a locator task using the world geocoding service
   var locatorTask = new Locator({
@@ -199,6 +231,10 @@ require([
   });
   
   function dronePopup(mapPoint) {
+  
+    if (isMobile()) {
+      view.ui.remove(basemapToggle);
+    }
     
     // draw X on the map
     graphicsLayer.removeAll();
@@ -239,7 +275,6 @@ require([
       else {
         view.popup.content += response.attributes.LongLabel.substr(response.attributes.PlaceName.length + 1).trim(); // remove placename from start of long form address -plus one for the comma
       }
-      console.log(response);
     }).catch(function(error) {
       // If the promise fails and no result is found, show a generic message for address
       view.popup.content += 'No address was found at this location</p>';
@@ -275,7 +310,7 @@ require([
         view.popup.content += ' and the Taupo District Council <a href="https://www.taupodc.govt.nz/our-services/a-to-z/Documents/RPAS%20Permit%20Application%20Form.pdf"  target="_blank">Drone Permit</a>';
       }
       view.popup.content += '</p>';
-    });
+    });    
     search.focus();
     instructionsExpand.collapse();
   }
@@ -303,6 +338,7 @@ require([
     "within one mile of the pointer location."
   ].join(" ");*/
   
+  // Instructions - Expand widget
   instructionsDiv = dojo.byId("instructionsDiv");
   if (view.width < 375)
       instructionsDiv.style.width = (view.width - 70) + "px"
@@ -316,10 +352,19 @@ require([
     view: view,
     content: instructionsDiv
   });
+  
+  watchUtils.whenTrue(instructionsExpand, "expanded", function() {
+    if (isMobile()) {
+      view.popup.close();
+    }
+  });
+  
       
   // Place widgets on the map
   if (isMobile())
     view.ui.add(locateBtn, "top-left");
   view.ui.add(instructionsExpand, "top-left");        
   view.ui.add(search, "top-right");  
+  view.ui.add(basemapToggle, "bottom-right");
+  
 });
