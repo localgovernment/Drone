@@ -310,7 +310,7 @@ require([
     }).then(function(isCouncil){
       view.popup.content += '<p>Please use the above information to assist in the filling out of the Taupo Airport Authority <a href="https://taupoairport.co.nz/rpas-form/"  target="_blank">RPAS Agreement Form</a>';
       if (isCouncil) {
-        view.popup.content += ' and the Taupo District Council <a href="https://www.taupodc.govt.nz/our-services/a-to-z/Documents/RPAS%20Permit%20Application%20Form.pdf"  target="_blank">Drone Permit</a>';
+        view.popup.content += ' and the Taupo District Council <a href="https://www.taupodc.govt.nz/repository/libraries/id:25026fn3317q9slqygym/hierarchy/our-services/a-to-z/documents/RPAS%20Permit%20Application%20Form.pdf"  target="_blank">Drone Permit</a>';
       }
       view.popup.content += '</p>';
     });    
